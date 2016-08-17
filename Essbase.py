@@ -578,26 +578,31 @@ class Essbase:
     
     Returns a message list that resulted from executing a MaxL statement.
     """
-    def msgs(self, output=sys.stdout):
+	def msgs(self, output=sys.stdout):
 
-        msgno, level, msg = self.pop_msg()
+		msgno, level, msg = self.pop_msg()
+		stderr = False
 
-        while msgno:
-            # Decode message level
-            if level == MAXL_MSGLVL_SUCCESS:
-                msglvl = "OK/INFO"
-            elif level == MAXL_MSGLVL_WARNING:
-                msglvl = "WARNING"
-            elif level == MAXL_MSGLVL_ERROR:
-                msglvl = "ERROR"
-            elif level == MAXL_MSGLVL_FATAL:
-                msglvl = "FATAL"
-            else:
-                msglvl = str(level)
-            print ("%8s - %7d - %s." % (msglvl, msgno, msg.decode()))
-            msgno, level, msg = self.pop_msg()
-
-        print ('')
+		while msgno:
+			# Decode message level
+			if level == MAXL_MSGLVL_SUCCESS:
+				msglvl = "OK/INFO"
+			elif level == MAXL_MSGLVL_WARNING:
+				msglvl = "WARNING"
+				stderr = True
+			elif level == MAXL_MSGLVL_ERROR:
+				msglvl = "ERROR"
+				stderr = True
+			elif level == MAXL_MSGLVL_FATAL:
+				msglvl = "FATAL"
+				stderr = True
+			else:
+				msglvl = str(level)
+			if stderr:
+				print ("%8s - %7d - %s." % (msglvl, msgno, msg.decode()), file=sys.stderr)
+			else:
+				print ("%8s - %7d - %s." % (msglvl, msgno, msg.decode()))
+			msgno, level, msg = self.pop_msg()
 
     """------------------------------- execute -------------------------------
     
@@ -625,7 +630,7 @@ class Essbase:
             # dump status messages
             self.msgs(output)
 
-            print ("Execution of [%s] failed with status %d" % (stmt, sts))
+            print ("Execution of [%s] failed with status %d" % (stmt, sts), file=sys.stderr)
         elif self.numFlds:
             print (self.tdf())
 
